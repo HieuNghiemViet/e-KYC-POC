@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  hypersnapsdk_flutter: ^5.1.0
+  hyperkyc_flutter: ^0.46.2
 
 dev_dependencies:
   flutter_test:

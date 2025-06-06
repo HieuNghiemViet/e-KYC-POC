@@ -1,5 +1,10 @@
+import 'dart:math';
+import 'package:ekyc_hyperverge/enum.dart';
 import 'package:flutter/material.dart';
-import 'package:hypersnapsdk_flutter/hypersnapsdk_flutter.dart';
+import 'package:hyperkyc_flutter/hyperkyc_config.dart';
+import 'package:hyperkyc_flutter/hyperkyc_flutter.dart';
+import 'package:hyperkyc_flutter/hyperkyc_result.dart';
+import 'dart:developer' as developer;
 
 void main() {
   runApp(const MyApp());
@@ -13,159 +18,64 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String faceImageUri = "";
-  String docImageUri = "";
+  String appId = "8z5j2v";
+  String appKey = "8prmg1466yv7tvzwoow2";
+  String workfloweKYC = "workflow_ekyc";
+  String workflowNFC = "workflow_ekyc_nfc";
 
   @override
   void initState() {
-    initHyperSnapSDK();
     super.initState();
+    prefetch();
   }
 
-  Future<void> initHyperSnapSDK() async {
-    String appId = "8z5j2v";
-    String appKey = "8prmg1466yv7tvzwoow2";
-
-    var initStatus = await HyperSnapSDK.initialize(
-      appId,
-      appKey,
-      Region.asiaPacific,
-    );
-    print("hypersnapsdk initialisation status : $initStatus");
-
-    /// If you need to customise HyperSnapSDK Config
-    await HyperSnapSDK.setHyperSnapSDKConfig(
-      hyperSnapSDKConfig: HyperSnapSDKConfig(
-          //  <your-hypersnapsdk-config>
-          ),
+  void prefetch() {
+    HyperKyc.prefetch(
+      appId: appId,
+      workflowId: workfloweKYC,
     );
   }
 
-  /// Start user session
-  Future<void> startUserSession() async {
-    bool isStarted = await HyperSnapSDK.startUserSession('<session-id>');
-    print("start user session status : $isStarted");
-  }
+  void startUserSession({EKYCType eKycType = EKYCType.ekyc}) async {
+    try {
+      var hyperKycConfig = HyperKycConfig.fromAppIdAppKey(
+        appId: appId,
+        appKey: appKey,
+        workflowId: eKycType == EKYCType.ekyc ? workfloweKYC : workflowNFC,
+        transactionId: Random().nextInt(1000).toString(),
+      );
 
-  /// End user session
-  Future<void> endUserSession() async {
-    await HyperSnapSDK.endUserSession();
-  }
+      HyperKycResult hyperKycResult =
+          await HyperKyc.launch(hyperKycConfig: hyperKycConfig);
 
-  /// Start Document Capture Flow
-  Future<void> startDocCapture() async {
-    await HVDocsCapture.start(
-      hvDocConfig: HVDocConfig(
+      developer.log("HyperKycResult: ${hyperKycResult.getRawDataJsonString()}");
 
-          //  <your-doc-capture-config>
-          ),
-      onComplete: (hvResponse, hvError) {
-        //  Handle Doc Capture flow response / error
-        //  ...
-        printResult(hvResponse, hvError);
-        setState(() {
-          docImageUri = hvResponse?.imageUri ?? "";
-        });
-      },
-    );
-  }
-
-  /// Start Face Capture Flow
-  Future<void> startFaceCapture() async {
-    await HVFaceCapture.start(
-      hvFaceConfig: HVFaceConfig(
-          //  <your-face-capture-config>
-          ),
-      onComplete: (hvResponse, hvError) {
-        //  Handle Face Capture flow response / error
-        //  ...
-        printResult(hvResponse, hvError);
-        setState(() {
-          faceImageUri = hvResponse?.imageUri ?? "";
-        });
-      },
-    );
-  }
-
-  /// Start Barcode Capture Flow
-  Future<void> barcodeScanCapture() async {
-    await HVBarcodeScanCapture.start(
-      hvBarcodeConfig: HVBarcodeConfig(
-          //  <your-barcode-capture-config>
-          ),
-      onComplete: (hvResult, hvError) {
-        //  Handle Barcode Capture flow response / error
-        //  ...
-        if (hvResult != null) {
-          print('barcode result : $hvResult');
-        }
-        if (hvError != null) {
-          print("error code : ${hvError.errorCode}");
-          print("error message : ${hvError.errorMessage}");
-        }
-      },
-    );
-  }
-
-  //  Make OCR call using HVNetworkHelper utility class
-  Future<void> ocrCall() async {
-    await HVNetworkHelper.makeOCRCall(
-      endpoint: '<your-ocr-endpoint>',
-      documentUri: docImageUri/*<your-doc-image-uri>*/,
-      parameters: {},
-      headers: {},
-      onComplete: (hvResponse, hvError) {
-        //  Handle OCR API Call response / error
-        //  ...
-        printResult(hvResponse, hvError);
-      },
-    );
-  }
-
-  Future<void> faceMatchCall() async {
-    await HVNetworkHelper.makeFaceMatchCall(
-      endpoint: '<your-face-match-endpoint>',
-      faceUri: faceImageUri/*<your-face-image-uri>*/,
-      documentUri: docImageUri/*<your-doc-image-uri>*/,
-      faceMatchMode: FaceMatchMode.faceId,
-      parameters: {},
-      headers: {},
-      onComplete: (hvResponse, hvError) {
-        //  Handle OCR API Call response / error
-        //  ...
-        printResult(hvResponse, hvError);
-      },
-    );
-  }
-
-  void printResult(HVResponse? hvResponse, HVError? hvError) {
-    if (hvResponse != null) {
-      if (hvResponse.imageUri != null) {
-        print("image uri : ${hvResponse.imageUri!}");
-      }
-      if (hvResponse.videoUri != null) {
-        print("video uri : ${hvResponse.videoUri!}");
-      }
-      if (hvResponse.fullImageUri != null) {
-        print("full image uri : ${hvResponse.fullImageUri!}");
-      }
-      if (hvResponse.retakeMessage != null) {
-        print("retake Message : ${hvResponse.retakeMessage!}");
-      }
-      if (hvResponse.action != null) print("action : ${hvResponse.action!}");
-      if (hvResponse.apiResult != null) {
-        print("api result : ${hvResponse.apiResult!.toString()}");
-      }
-      if (hvResponse.apiHeaders != null) {
-        print("api headers : ${hvResponse.apiHeaders!.toString()}");
-      }
-      if (hvResponse.rawBarcode != null) {
-        print("rawBarcode : ${hvResponse.rawBarcode!}");
-      }
+      handleResult(hyperKycResult);
+    } catch (e) {
+      developer.log("Error starting user session: $e");
     }
-    if (hvError != null) {
-      print("error code : ${hvError.errorCode}");
-      print("error message : ${hvError.errorMessage}");
+  }
+
+  void handleResult(HyperKycResult hyperKycResult) {
+    String? status = hyperKycResult.status?.value;
+    switch (status) {
+      case 'auto_approved':
+        // workflow successful
+        developer.log('workflow successful - auto approved');
+      case 'auto_declined':
+        // workflow successful;
+        developer.log('workflow successful - auto declined');
+      case 'needs_review':
+        // workflow successful
+        developer.log('workflow successful - needs review');
+      case 'error':
+        // failure
+        developer.log('failure');
+      case 'user_cancelled':
+        // user cancelled
+        developer.log('user cancelled');
+      default:
+        developer.log('contact HyperVerge for more details');
     }
   }
 
@@ -181,43 +91,25 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Builder(
-                builder: (BuildContext context) {
-                  return ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => const AnimationScreen()));
-                      },
-                      child: const Text("Animation"));
-                },
+              // Builder(
+              //   builder: (BuildContext context) {
+              //     return ElevatedButton(
+              //         onPressed: () {
+              //           Navigator.of(context).push(MaterialPageRoute(
+              //               builder: (_) => const AnimationScreen()));
+              //         },
+              //         child: const Text("Animation"));
+              //   },
+              // ),
+              ElevatedButton(
+                onPressed: () => startUserSession(),
+                child: const Text("Workflow_ekyc"),
               ),
               ElevatedButton(
-                onPressed: () async => await startUserSession(),
-                child: const Text("Start User Session"),
-              ),
-              ElevatedButton(
-                onPressed: () async => await endUserSession(),
-                child: const Text("End User Session"),
-              ),
-              ElevatedButton(
-                onPressed: () async => await startDocCapture(),
-                child: const Text("Start Document Capture Flow"),
-              ),
-              ElevatedButton(
-                onPressed: () async => await startFaceCapture(),
-                child: const Text("Start Face Capture Flow"),
-              ),
-              ElevatedButton(
-                onPressed: () async => await barcodeScanCapture(),
-                child: const Text("Start Barcode Capture Flow"),
-              ),
-              ElevatedButton(
-                onPressed: () async => await ocrCall(),
-                child: const Text("Make OCR Call"),
-              ),
-              ElevatedButton(
-                onPressed: () async => await faceMatchCall(),
-                child: const Text("Make Face Match Call"),
+                onPressed: () => startUserSession(
+                  eKycType: EKYCType.ekycNFC,
+                ),
+                child: const Text("Workflow_ekyc_nfc"),
               ),
             ],
           ),
@@ -254,9 +146,7 @@ class _AnimationScreenState extends State<AnimationScreen>
 
     animation = Tween<double>(begin: 0, end: 300).animate(controller)
       ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-
-        }
+        if (status == AnimationStatus.completed) {}
       })
       ..addListener(() {
         setState(() {});
