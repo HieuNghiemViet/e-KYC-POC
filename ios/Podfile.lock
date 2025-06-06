@@ -1,0 +1,31 @@
+PODS:
+  - Flutter (1.0.0)
+  - HyperSnapSDK (4.34.0):
+    - HyperSnapSDK/Core (= 4.34.0)
+  - HyperSnapSDK/Core (4.34.0)
+  - hypersnapsdk_flutter (0.0.1):
+    - Flutter
+    - HyperSnapSDK (= 4.34.0)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - hypersnapsdk_flutter (from `.symlinks/plugins/hypersnapsdk_flutter/ios`)
+
+SPEC REPOS:
+  trunk:
+    - HyperSnapSDK
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  hypersnapsdk_flutter:
+    :path: ".symlinks/plugins/hypersnapsdk_flutter/ios"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  HyperSnapSDK: 179028f7237742986aded42223b56230b5642a4a
+  hypersnapsdk_flutter: 5293a67906b06f1b7988e9683ce4f17a4c51128a
+
+PODFILE CHECKSUM: 4305caec6b40dde0ae97be1573c53de1882a07e5
+
+COCOAPODS: 1.16.2
